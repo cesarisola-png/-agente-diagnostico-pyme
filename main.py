@@ -1,5 +1,6 @@
-import os
 import json
+import os
+import re
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -7,7 +8,6 @@ import google.generativeai as genai
 
 app = FastAPI()
 
-# Permitir solicitudes desde el HTML local o desplegado
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,19 +18,34 @@ app.add_middleware(
 
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
+
 class DiagRequest(BaseModel):
     system_prompt: str
     user_text: str
+
 
 @app.post("/chat")
 async def chat_endpoint(req: DiagRequest):
     try:
         model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
-            generation_config={"response_mime_type": "application/json"}
+            model_name="gemini-2.0-flash",
+            generation_config={"response_mime_type": "application/json"},
         )
-        full_prompt = f"{req.system_prompt}\n\nENTRADA DEL CEO:\n{req.user_text}"
+
+        full_prompt = (
+            f"{req.system_prompt}\n\nENTRADA DEL CEO:\n{req.user_text}"
+        )
         response = model.generate_content(full_prompt)
-        return json.loads(response.text)
+
+        raw_text = response.text.strip()
+
+        # Limpieza por si el modelo devuelve bloques de código markdown ```json ... ```
+        if "```" in raw_text:
+            raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
+            raw_text = re.sub(r"\s*```$", "", raw_text)
+
+        return json.loads(raw_text)
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500, detail=f"Error en el servidor: {str(e)}"
