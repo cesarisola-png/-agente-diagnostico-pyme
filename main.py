@@ -39,7 +39,7 @@ async def chat_endpoint(req: DiagRequest):
 
         raw_text = response.text.strip()
 
-        # Limpieza por si el modelo devuelve bloques de código markdown ```json ... ```
+        # Limpieza por si el modelo devuelve bloques de código markdown
         if "```" in raw_text:
             raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
             raw_text = re.sub(r"\s*```$", "", raw_text)
@@ -49,3 +49,4 @@ async def chat_endpoint(req: DiagRequest):
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Error en el servidor: {str(e)}"
+        )
