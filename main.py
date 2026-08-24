@@ -29,7 +29,7 @@ async def chat_endpoint(req: DiagRequest):
     try:
         # Usamos gemini-1.5-flash para asegurar compatibilidad directa
         model = genai.GenerativeModel(
-            model_name="gemini-flash",
+            model_name="gemini-3.5-flash-lite",
             generation_config={"response_mime_type": "application/json"},
         )
 
