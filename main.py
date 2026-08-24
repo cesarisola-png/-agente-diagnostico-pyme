@@ -27,8 +27,9 @@ class DiagRequest(BaseModel):
 @app.post("/chat")
 async def chat_endpoint(req: DiagRequest):
     try:
+        # Usamos gemini-1.5-flash para asegurar compatibilidad directa
         model = genai.GenerativeModel(
-            model_name="gemini-2.0-flash",
+            model_name="gemini-1.5-flash",
             generation_config={"response_mime_type": "application/json"},
         )
 
@@ -39,7 +40,7 @@ async def chat_endpoint(req: DiagRequest):
 
         raw_text = response.text.strip()
 
-        # Limpieza por si el modelo devuelve bloques de código markdown
+        # Limpieza de bloque markdown si existiera
         if "```" in raw_text:
             raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
             raw_text = re.sub(r"\s*```$", "", raw_text)
